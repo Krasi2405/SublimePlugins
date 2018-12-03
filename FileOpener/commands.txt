@@ -1,0 +1,16 @@
+[
+	{
+		"command": "chromium-browser <dir><file_name>",
+		"extension": "html"
+	},
+	{
+		"command": "gcc <dir><file_name> -o <dir>out.sh",
+		"extension": "c",
+		"executable_command": "<dir>out.sh"
+	},
+	{
+		"command": "g++ <dir><file_name> -o <dir>out.sh",
+		"extension": "cpp",
+		"executable_command": "<dir>out.sh"
+	}
+]

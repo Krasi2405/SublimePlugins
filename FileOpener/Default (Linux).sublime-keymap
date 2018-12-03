@@ -1,0 +1,6 @@
+[
+{ 
+	"keys": ["alt+shift+o"],
+	"command": "open_file"
+}
+]
