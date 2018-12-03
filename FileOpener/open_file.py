@@ -2,6 +2,7 @@ import sublime
 import sublime_plugin
 import os
 import json
+import subprocess
 
 class Command:
 
@@ -18,13 +19,16 @@ class Command:
 
 		parse_dict = {
 			"<file_name>": filename,
-			"<dir>": directory
+			"<dir>": directory,
+			"<abs>": os.path.join(directory, filename)
 		}
 
 		command = self.format(self.command, parse_dict)
 		os.system(command)
 		if self.is_executable:
 			executable_command = self.format(self.executable_command, parse_dict)
+			output = subprocess.Popen(executable_command, stdout=subprocess.PIPE).communicate()[0]
+			print(output)
 			os.system(executable_command)
 
 	def format(self, base, parse_dict):
