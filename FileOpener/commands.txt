@@ -12,5 +12,10 @@
 		"command": "g++ <abs> -o <dir>out.sh",
 		"extension": "cpp",
 		"executable_command": "<dir>out.sh"
+	},
+	{
+		"command": "",
+		"executable_command": "python <abs>",
+		"extension": "py"
 	}
 ]

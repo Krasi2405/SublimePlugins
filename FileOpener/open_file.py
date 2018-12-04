@@ -25,9 +25,11 @@ class Command:
 
 		command = self.format(self.command, parse_dict)
 		os.system(command)
+		
 		if self.is_executable:
 			executable_command = self.format(self.executable_command, parse_dict)
-			output = subprocess.Popen(executable_command, stdout=subprocess.PIPE).communicate()[0]
+			terminal_args = executable_command.split(" ")
+			output = subprocess.Popen(terminal_args, stdout=subprocess.PIPE).communicate()[0]
 			print(output)
 			os.system(executable_command)
 
