@@ -1,0 +1,22 @@
+[
+	{
+		"execute_command": "chromium-browser <filename>",
+		"extension": "html"
+	},
+	{
+		"execute_command": "gcc <filename> -o out.sh",
+		"output_command": "./out.sh",
+		"extension": "c",
+		"args_support": true
+	},
+	{
+		"execute_command": "g++ <filename> -o out.sh",
+		"output_command": "./out.sh",
+		"extension": "cpp",
+		"args_support": true
+	},
+	{
+		"output_command": "python <filename>",
+		"extension": "py"
+	}
+]
