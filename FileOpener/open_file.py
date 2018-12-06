@@ -24,33 +24,13 @@ class Command:
 		self.__execute_command(file_path, work_dir)
 		self.__execute_output_command(file_path, work_dir)
 
-		
-		# if self.command != "":
-		# 	command = self.format(self.command, abs_path)
-		# 	os.system(command)
-		
-		# if self.output_command :
-		# 	output_command = self.format(self.output_command)
-		# 	terminal_args = output_command.split(" ")
-		# 	if args:
-		# 		args = self.format(args, abs_path)
-		# 		args = args.split(" ")
-		# 		terminal_args += args
-
-		# 	print(terminal_args)
-		# 	output = subprocess.Popen(
-		# 		terminal_args, 
-		# 		cwd=os.path.split(abs_path)[0], 
-		# 		stdout=subprocess.PIPE
-		# 	).communicate()[0]
-
-		# 	print(output)
 
 	def get_output_command(self, abs_path):
 		return self.__format_command(self.output_command_template, abs_path)
 
 
 	def get_execute_command(self, abs_path):
+
 		return self.__format_command(self.execution_command_template, abs_path)
 
 
@@ -80,6 +60,7 @@ class Command:
 		# Format the command using template if not formatted already
 		command = self.get_execute_command(command)
 
+		print(command)
 		sublime_dir = os.getcwd()
 		if cwd is not None:
 			os.chdir(cwd)
@@ -95,6 +76,9 @@ class Command:
 		directory += "/"
 		filename = os.path.split(abs_path)[1]
 
+
+		print(filename)
+
 		parse_dict = {
 			"<filename>": filename,
 			"<dir>": directory,
@@ -102,14 +86,14 @@ class Command:
 		}
 
 
-		formatted = template
 		for key in parse_dict:
-			formatted = template.replace(key, parse_dict[key])
+			template = template.replace(key, parse_dict[key])
+
 		return template
 
 
 	def __format_command(self, command_template, abs_path):
-		if command:
+		if command_template:
 			return self.__format(command_template, abs_path)
 		else:
 			return None
