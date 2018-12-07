@@ -18,11 +18,28 @@ class Command:
 
 			
 
-	def execute(self, file_path):
+	def execute(self, file_path, execution_command="", output_command=""):
 		work_dir = os.path.split(file_path)[0]
 
-		self.__execute_command(file_path, work_dir)
-		self.__execute_output_command(file_path, work_dir)
+		if self.execution_command_template:
+			command = ""
+			if execution_command:
+				command = execution_command
+			else:
+				command = self.get_execute_command(file_path)
+
+
+			print("Execute: ", command)
+			self.__execute_command(command, work_dir)
+
+		if self.output_command_template:
+			command = ""
+			if output_command:
+				command = output_command
+			else:
+				command = self.get_output_command(file_path)
+			print("Output: ", command)
+			self.__execute_output_command(command, work_dir)
 
 
 	def get_output_command(self, abs_path):
@@ -30,37 +47,25 @@ class Command:
 
 
 	def get_execute_command(self, abs_path):
-
 		return self.__format_command(self.execution_command_template, abs_path)
 
 
 	def __execute_output_command(self, command, cwd=None):
-		pass
-		# command = self.get_command(command)
-		# output_command = self.format(self.output_command)
-		# terminal_args = output_command.split(" ")
-		# if args:
-		# 	args = self.format(args, abs_path)
-		# 	args = args.split(" ")
-		# 	terminal_args += args
+		terminal_args = command.split(" ")
 
-		# print(terminal_args)
-		# output = subprocess.Popen(
-		# 	terminal_args, 
-		# 	cwd=os.path.split(abs_path)[0], 
-		# 	stdout=subprocess.PIPE
-		# ).communicate()[0]
+		print(terminal_args)
+		output = subprocess.Popen(
+			terminal_args, 
+			cwd=cwd, 
+			stdout=subprocess.PIPE
+		).communicate()[0]
 
-		# print(output)
+		print(output)
 
 
 
 
 	def __execute_command(self, command, cwd=None):
-		# Format the command using template if not formatted already
-		command = self.get_execute_command(command)
-
-		print(command)
 		sublime_dir = os.getcwd()
 		if cwd is not None:
 			os.chdir(cwd)
@@ -75,9 +80,6 @@ class Command:
 		directory = os.path.split(abs_path)[0]
 		directory += "/"
 		filename = os.path.split(abs_path)[1]
-
-
-		print(filename)
 
 		parse_dict = {
 			"<filename>": filename,
@@ -96,11 +98,7 @@ class Command:
 		if command_template:
 			return self.__format(command_template, abs_path)
 		else:
-			return None
-
-
-	
-		
+			return None	
 
 
 class ExtensionManager:
@@ -109,12 +107,14 @@ class ExtensionManager:
 		self.__load_commands(command_file)
 
 
-	def execute_command(self, extension, execute_path):
+	def execute_command(self, extension, execute_path, execution_command="", output_command=""):
 		if extension not in self.commands:
 			print("{} extension not found!".format(extension))
 			return
 		command = self.commands[extension]
-		command.execute(execute_path)
+
+
+		command.execute(execute_path, execution_command, output_command)
 
 
 	def requires_args(self, extension):
@@ -124,9 +124,9 @@ class ExtensionManager:
 		return self.commands[extension].requires_args
 
 
-	def get_command(self, extension, abs_path):
+	def get_output_command(self, extension, abs_path):
 		cmd = self.commands[extension]
-		return cmd.get_command_string(abs_path);
+		return cmd.get_output_command(abs_path);
 			
 
 	def __load_commands(self, file_name):
@@ -146,7 +146,7 @@ class ExtensionManager:
 	def __load_command(self, command_dict):
 		execute_command = self.__load_json_property(command_dict, "execute_command", "")
 		output_command = self.__load_json_property(command_dict, "output_command", "")
-		requires_args = self.__load_json_property(command_dict, "requires_args", False)
+		requires_args = self.__load_json_property(command_dict, "args_support", False)
 
 		command = Command(execute_command, output_command, requires_args)
 		self.commands[command_dict["extension"]] = command
@@ -159,26 +159,6 @@ class ExtensionManager:
 		return value
 
 
-
-
-	
-
-
-
-
-# Deprecated
-class OpenFileCommand(sublime_plugin.TextCommand):
-
-	def run(self, edit):
-		self.extensions = ExtensionManager("commands.txt")
-		path = self.view.file_name()
-		filename = os.path.split(path)[1];
-		extension = filename.split(".")[1];
-		self.extensions.execute_command(extension, path)
-
-
-
-
 class OpenFilePromptCommand(sublime_plugin.WindowCommand):
 	extensions = ExtensionManager("commands.json")
 
@@ -188,22 +168,26 @@ class OpenFilePromptCommand(sublime_plugin.WindowCommand):
 		filename = os.path.split(path)[1];
 		extension = filename.split(".")[1];
 
-		
-		# if self.extensions.requires_args(extension):
-		# 	self.curr_path = path
-		# 	self.curr_extension = extension
 
-		# 	command_string = self.extensions.get_command(extension, path)
-		# 	self.window.show_input_panel("Arguments:", command_string, self.on_done, None, None)
+		if self.extensions.requires_args(extension):
+		 	self.curr_path = path
+		 	self.curr_extension = extension
 
-		self.extensions.execute_command(extension, path)
+		 	command_string = self.extensions.get_output_command(extension, path)
+		 	self.window.show_input_panel("Arguments:", command_string, self.on_done, None, None)
+		else:
+			self.extensions.execute_command(extension, path)
 		
-		#terminal = subprocess.Popen(["ls"], shell=True, cwd=os.path.split(path)[0], stdout=subprocess.PIPE);
+		# terminal = subprocess.Popen(["ls"], shell=True, cwd=os.path.split(path)[0], stdout=subprocess.PIPE);
 
 	def on_done(self, text):
 		try:
 			if self.window.active_view():
-				print("Give txt", text)
-				self.extensions.execute_command(self.curr_extension, self.curr_path, text)
+				print("Give txt ", text)
+				self.extensions.execute_command(
+					self.curr_extension, 
+					self.curr_path, 
+					output_command=text
+				)
 		except ValueError:
 			pass
