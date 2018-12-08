@@ -3,6 +3,7 @@ import sublime_plugin
 import os
 import json
 import subprocess
+import platform
 
 class Command:
 
@@ -54,12 +55,8 @@ class Command:
 
 	def __execute_output_command(self, command, cwd):
 		terminal_args = command.split(" ")
-		
-
 
 		print(terminal_args)
-		print("cwd: ", cwd)
-
 		stdin = self.get_stdin_file_from_args(terminal_args, cwd)
 		if stdin is None:
 			stdin = subprocess.PIPE
@@ -197,11 +194,27 @@ class ExtensionManager:
 
 
 class OpenFilePromptCommand(sublime_plugin.WindowCommand):
-	extensions = ExtensionManager("commands.json")
+
+	is_initialized = False
+
+	def __init__(self, window):
+		super().__init__(window)
+
+		commands_file_name = ""
+		if platform.system() == "Windows":
+			commands_file_name = "commands_windows.json"
+		elif platform.system() == "Linux":
+			commands_file_name = "commands_linux.json"
+		elif platform.system() == "Darwin":
+			commands_file_name = "commands_linux.json" # Hope that mac works the same way Linux does
+		else:
+			raise SystemError("OS not recognized!")
+		self.extensions = ExtensionManager(commands_file_name)
 
 	def run(self):
-
 		path = self.window.active_view().file_name()
+		path = path.replace("\\", "\\\\") # Do for windows
+
 		filename = os.path.split(path)[1];
 		extension = ""
 		try:
@@ -218,11 +231,12 @@ class OpenFilePromptCommand(sublime_plugin.WindowCommand):
 		 	self.window.show_input_panel("Arguments:", command_string, self.on_done, None, None)
 		else:
 			self.extensions.execute_command(extension, path)
-		
+
 		
 	def on_done(self, text):
 		try:
 			if self.window.active_view():
+
 				output = self.extensions.execute_command(
 					self.curr_extension, 
 					self.curr_path,

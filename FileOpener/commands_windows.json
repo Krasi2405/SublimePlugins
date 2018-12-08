@@ -1,0 +1,18 @@
+[
+	{
+		"execute_command": "gcc <filename> -o out.exe",
+		"output_command": "out.exe",
+		"extension": "c",
+		"args_support": true
+	},
+	{
+		"execute_command": "g++ <filename> -o out.exe",
+		"output_command": "out.exe",
+		"extension": "cpp",
+		"args_support": true
+	},
+	{
+		"output_command": "python <filename>",
+		"extension": "py"
+	}
+]
