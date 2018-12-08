@@ -64,7 +64,6 @@ class Command:
 		if stdin is None:
 			stdin = subprocess.PIPE
 
-		print("stdin: ", stdin)
 		output = subprocess.Popen(
 			terminal_args,
 			cwd=cwd,
@@ -73,7 +72,6 @@ class Command:
 		).communicate()[0]
 
 		if stdin is not subprocess.PIPE:
-			print("Close")
 			stdin.close()
 
 		self.output = output.decode("utf-8")
@@ -91,7 +89,10 @@ class Command:
 		if not os.path.isabs(file_path):
 			file_path = os.path.join(cwd, file_path)
 
-		return open(file_path)
+		try:
+			return open(file_path)
+		except FileNotFoundError:
+			return None
 
 	def get_output(self):
 		return self.output
