@@ -21,6 +21,8 @@ class Command:
 	def execute(self, file_path, execution_command="", output_command=""):
 		work_dir = os.path.split(file_path)[0]
 
+		print("Work dir: ", work_dir)
+
 		if self.execution_command_template:
 			command = ""
 			if execution_command:
@@ -54,14 +56,18 @@ class Command:
 		terminal_args = command.split(" ")
 
 		print(terminal_args)
+		print("cwd: ", cwd)
 		output = subprocess.Popen(
 			terminal_args, 
 			cwd=cwd, 
 			stdout=subprocess.PIPE
 		).communicate()[0]
 
-		print(output)
+		self.output = output.decode("utf-8")
 
+
+	def get_output(self):
+		return self.output
 
 
 
@@ -113,8 +119,9 @@ class ExtensionManager:
 			return
 		command = self.commands[extension]
 
-
 		command.execute(execute_path, execution_command, output_command)
+
+		return command.get_output()
 
 
 	def requires_args(self, extension):
@@ -127,10 +134,12 @@ class ExtensionManager:
 	def get_output_command(self, extension, abs_path):
 		cmd = self.commands[extension]
 		return cmd.get_output_command(abs_path);
+
 			
 
 	def __load_commands(self, file_name):
 		self.commands = {}
+
 
 		package_path = os.path.join(sublime.packages_path(), "FileOpener")
 		file_path = os.path.join(package_path, file_name)
@@ -166,7 +175,11 @@ class OpenFilePromptCommand(sublime_plugin.WindowCommand):
 
 		path = self.window.active_view().file_name()
 		filename = os.path.split(path)[1];
-		extension = filename.split(".")[1];
+		extension = ""
+		try:
+			extension = filename.split(".")[1];
+		except:
+			extension = filename
 
 
 		if self.extensions.requires_args(extension):
@@ -178,16 +191,30 @@ class OpenFilePromptCommand(sublime_plugin.WindowCommand):
 		else:
 			self.extensions.execute_command(extension, path)
 		
-		# terminal = subprocess.Popen(["ls"], shell=True, cwd=os.path.split(path)[0], stdout=subprocess.PIPE);
-
+		
 	def on_done(self, text):
 		try:
 			if self.window.active_view():
-				print("Give txt ", text)
-				self.extensions.execute_command(
+				output = self.extensions.execute_command(
 					self.curr_extension, 
-					self.curr_path, 
+					self.curr_path,
 					output_command=text
 				)
+				
+				self.window.run_command("show_output", {"output": output} )
 		except ValueError:
 			pass
+
+
+class WriteToViewCommand(sublime_plugin.TextCommand):
+
+	def run(self, edit, input):
+		self.view.insert(edit, 0, input)
+
+
+
+class ShowOutputCommand(sublime_plugin.WindowCommand):
+	def run(self, output):
+		output_panel = self.window.create_output_panel("panelche")
+		self.window.run_command("show_panel", {"panel": "output.panelche"})
+		output_panel.run_command("write_to_view", {"input": output})
