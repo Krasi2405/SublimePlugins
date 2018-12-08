@@ -52,19 +52,46 @@ class Command:
 		return self.__format_command(self.execution_command_template, abs_path)
 
 
-	def __execute_output_command(self, command, cwd=None):
+	def __execute_output_command(self, command, cwd):
 		terminal_args = command.split(" ")
+		
+
 
 		print(terminal_args)
 		print("cwd: ", cwd)
+
+		stdin = self.get_stdin_file_from_args(terminal_args, cwd)
+		if stdin is None:
+			stdin = subprocess.PIPE
+
+		print("stdin: ", stdin)
 		output = subprocess.Popen(
-			terminal_args, 
-			cwd=cwd, 
+			terminal_args,
+			cwd=cwd,
+			stdin=stdin,
 			stdout=subprocess.PIPE
 		).communicate()[0]
 
-		self.output = output.decode("utf-8")
+		if stdin is not subprocess.PIPE:
+			print("Close")
+			stdin.close()
 
+		self.output = output.decode("utf-8")
+		print("self.output:", self.output)
+
+
+
+	def get_stdin_file_from_args(self, terminal_args, cwd):
+		if "<" not in terminal_args:
+			return None
+
+		stdin_index = terminal_args.index("<")
+
+		file_path = terminal_args[stdin_index + 1]
+		if not os.path.isabs(file_path):
+			file_path = os.path.join(cwd, file_path)
+
+		return open(file_path)
 
 	def get_output(self):
 		return self.output
