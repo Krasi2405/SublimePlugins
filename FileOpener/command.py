@@ -7,10 +7,8 @@ class Command:
 	def __init__(self, execution_command="", output_command="", requires_args=False):
 		# Used either for one off actions or for compiling
 		self.execution_command_template = execution_command 
-
-		# Used for terminal output
-		self.output_command_template = output_command
-
+		
+		self.output_command_template = output_command # Used for terminal output
 		# Whether player is allowed to put in args.
 		self.requires_args = requires_args
 
@@ -18,8 +16,6 @@ class Command:
 
 	def execute(self, file_path, execution_command="", output_command=""):
 		work_dir = os.path.split(file_path)[0]
-
-		print("Work dir: ", work_dir)
 
 		if self.execution_command_template:
 			command = ""
@@ -69,8 +65,6 @@ class Command:
 			stdin.close()
 
 		self.output = output.decode("utf-8")
-		print("self.output:", self.output)
-
 
 
 	def get_stdin_file_from_args(self, terminal_args, cwd):
@@ -88,9 +82,9 @@ class Command:
 		except FileNotFoundError:
 			return None
 
+
 	def get_output(self):
 		return self.output
-
 
 
 	def __execute_command(self, command, cwd=None):
@@ -104,7 +98,7 @@ class Command:
 			os.chdir(sublime_dir)
 
 
-	def __format(self, template, abs_path):
+	def __format_template(self, template, abs_path):
 		directory = os.path.split(abs_path)[0]
 		directory += "/"
 		filename = os.path.split(abs_path)[1]
@@ -124,6 +118,7 @@ class Command:
 
 	def __format_command(self, command_template, abs_path):
 		if command_template:
-			return self.__format(command_template, abs_path)
+			return self.__format_template(command_template, abs_path)
 		else:
 			return None	
+

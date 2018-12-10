@@ -8,10 +8,11 @@ from .command_manager import *
 
 class OpenFilePromptCommand(sublime_plugin.WindowCommand):
 
-	is_initialized = False
-
 	def __init__(self, window):
 		super().__init__(window)
+
+		self.last_file = None
+		self.last_command = None
 
 		commands_file_name = ""
 		if platform.system() == "Windows":
@@ -41,6 +42,9 @@ class OpenFilePromptCommand(sublime_plugin.WindowCommand):
 		 	self.curr_extension = extension
 
 		 	command_string = self.extensions.get_output_command(extension, path)
+		 	if self.last_file == os.path.split(self.curr_path)[1]:
+		 		print("reload last file")
+		 		command_string = self.last_command
 		 	self.window.show_input_panel("Arguments:", command_string, self.on_done, None, None)
 		else:
 			self.extensions.execute_command(extension, path)
@@ -49,13 +53,18 @@ class OpenFilePromptCommand(sublime_plugin.WindowCommand):
 	def on_done(self, text):
 		try:
 			if self.window.active_view():
+				self.last_command = text
+				self.last_file = os.path.split(self.curr_path)[1]
+
+				print("Last cmd: {}, Last File: {}".format(self.last_command, self.last_file))
+
 
 				output = self.extensions.execute_command(
 					self.curr_extension, 
 					self.curr_path,
 					output_command=text
 				)
-				
+
 				self.window.run_command("show_output", {"output": output} )
 		except ValueError:
 			pass

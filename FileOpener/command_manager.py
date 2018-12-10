@@ -15,8 +15,8 @@ class CommandManager:
 		if extension not in self.commands:
 			print("{} extension not found!".format(extension))
 			return
-		command = self.commands[extension]
 
+		command = self.commands[extension]
 		command.execute(execute_path, execution_command, output_command)
 
 		return command.get_output()
@@ -33,11 +33,9 @@ class CommandManager:
 		cmd = self.commands[extension]
 		return cmd.get_output_command(abs_path);
 
-			
 
 	def __load_commands(self, file_name):
 		self.commands = {}
-
 
 		package_path = os.path.join(sublime.packages_path(), "FileOpener")
 		file_path = os.path.join(package_path, file_name)
